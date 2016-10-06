@@ -5,8 +5,8 @@ import json
 
 
 
-client_id = ('YYY')
-client_secret = ('XXX')
+client_id = ('m5gdx2czz986mj3agrdrcq8a')
+client_secret = ('zRwRSKgGkk')
 
 
 def header_token (file):
@@ -15,15 +15,14 @@ def header_token (file):
     try:
         f = open(file,'r')
     except IOError as e:
-        print "I/O error({0}): {1}".format(e.errno, e.strerror)
-        
+        print "I/O error({0}): {1}".format(e.errno, e.strerror)     
     tmp = f.read()
     f.close()
     if tmp:
         strtime = tmp.split(';')[0]
         time = datetime.strptime(strtime, '%Y-%m-%d %H:%M:%S.%f') + timedelta(hours=+24)
         access_token = tmp.split(';')[1]
-        if time < now:  #Token is invalid because older than 24h
+        if time < now or len(access_token) <= 20: #Token is invalid because older than 24h
             print ('get new header')
             access_token =  getNewToken()
             f = open(file,'w')
@@ -52,17 +51,20 @@ def getNewToken():
         'client_id' : client_id,
         'client_secret': client_secret, 
         'grant_type' : 'client_credentials'}
-    try:            
-        r = requests.post(request, data = header_auth)
-        j =  r.json() 
+#    try:            
+    r = requests.post(request, data = header_auth)
+    j =  r.json() 
 #        access_token = { 'Authorization': 'Bearer ' + j['access_token']}
+        
+    if r.status_code > 299:
+        raise URLError('No access token retrieved! :')
+    else:
         token = j['access_token']
-        if r.status_code > 299:
-            raise URLError
-    except URLError, e:
-        print 'Error: ', e
-
-    return token
+        return token
+#    except URLError, e:
+#        print 'Error: ', e
+ #   else:
+         
     
 def getHeader(access_token):
     header_call = {
